@@ -1,4 +1,5 @@
 # GVPT628 Final Project
+## Josh Cohn
 
 This repository contains my final project for GVPT628: "Targeting Young Men: An Analysis of 2024 U.S. Election Advertising on Meta Platforms".
 

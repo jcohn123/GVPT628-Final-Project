@@ -9,7 +9,7 @@ This repository contains my final project for GVPT628: "Targeting Young Men: An 
 - `Final_Project Markdown.md` — rendered markdown with plots
 - `Final-Project-Markdown_files/figure-gfm` — folder with images for markdown
 - `GVPT628 Final Project Memo – Josh Cohn.pdf` — final memo submission
-- `Data` — CSV and ZIP data files _(For descriptive table on Democratic and Republican Advertisers, feel free to download the datasets as a CSV file)_
+- `Data` — CSV and ZIP data files _(For descriptive table on Democratic and Republican-aligned Advertisers, feel free to download the datasets as a CSV file)_
   
 ## How to use
 

@@ -7,7 +7,7 @@ This repository contains my final project for GVPT628: "Targeting Young Men: An 
 
 - `Final Project Markdown.Rmd` — R Markdown source
 - `Final_Project Markdown.md` — rendered markdown with plots
-- `Final-Project-Markdown_files/` — folder with images for markdown
+- `Final-Project-Markdown_files/figure-gfm` — folder with images for markdown
 - `GVPT628 Final Project Memo – Josh Cohn.pdf` — final memo submission
 - `Data` — CSV and ZIP data files
 

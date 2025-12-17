@@ -1,33 +1,59 @@
----
-title: "Josh Cohn - Final Project Markdown"
-output: github_document
-date: "2025-12-17"
----
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+Josh Cohn - Final Project Markdown
+================
+2025-12-17
 
 ### Downloaded CSV file data from meta, but ended up as a zip file so need to unzip it!
 
-```{r}
+``` r
 unzip("meta-ad-library-2025-12-03_2.zip")
 
 library(tidyverse)
+```
 
+    ## ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+    ## ✔ dplyr     1.1.4     ✔ readr     2.1.5
+    ## ✔ forcats   1.0.0     ✔ stringr   1.5.1
+    ## ✔ ggplot2   3.5.1     ✔ tibble    3.2.1
+    ## ✔ lubridate 1.9.4     ✔ tidyr     1.3.1
+    ## ✔ purrr     1.0.4     
+    ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+    ## ✖ dplyr::filter() masks stats::filter()
+    ## ✖ dplyr::lag()    masks stats::lag()
+    ## ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+
+``` r
 meta_ads <- read_csv("meta-ad-library-2025-12-03_2.csv")
 ```
 
+    ## Rows: 5054 Columns: 19
+    ## ── Column specification ────────────────────────────────────────────────────────
+    ## Delimiter: ","
+    ## chr  (14): page_name, byline, ad_creative_bodies, ad_creative_link_titles, a...
+    ## dbl   (2): ad_archive_id, page_id
+    ## date  (3): ad_creation_time, ad_delivery_start_time, ad_delivery_stop_time
+    ## 
+    ## ℹ Use `spec()` to retrieve the full column specification for this data.
+    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+
 ### Unnesting Demographic Data into its own columns so I can filter out young men (Men, 18-24 + 25-34)
 
-```{r}
+``` r
 # I had to google how to unnest this data, and after a significant amount of trial and error and trial and error etc etc, ended up getting the following code to work:
 
 
 # Demographic data is in long json string form, so need to download jsonlite, and clean the strings to get what we want! (men 18-34)
 
 library(jsonlite)
+```
 
+    ## 
+    ## Attaching package: 'jsonlite'
+
+    ## The following object is masked from 'package:purrr':
+    ## 
+    ##     flatten
+
+``` r
 # Creating function to Clean JSON strings in Demographics column 
 clean_json <- function(x) {
   if (is.na(x) || x == "" || x == "NA") return("[]") # Replacing empty strings with an empty JSON array
@@ -67,7 +93,7 @@ ads_with_demographics <- meta_ads_parsed %>%
 
 ### Now that data is unnested, I am able to filter out young men
 
-```{r}
+``` r
 # Now, only using rows for Men 18-24 + 25+34
 
 ads_young_men <- ads_with_demographics %>%
@@ -94,6 +120,11 @@ hist(
   xlab = "Percent",
   ylab = "# of Ads"
 )
+```
+
+![](Final-Project-Markdown_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+
+``` r
 #Somewhere between 0.1 -> 0.4 seems like a good cutoff
 # A massive chunk of ads target ~0-10% of this group, so anything higher could be categorized as targeting more young men 
 # I want enough data for findings to be meaningful, but want it to be ads focused on that young male group...
@@ -109,7 +140,7 @@ final_young_men_ads <- meta_ads %>%
 
 ### Exporting final_young_men_ads so I can dig into the advertisers manually to determine which are clearly republican/democratically aligned
 
-```{r}
+``` r
 # using writexl function to export the data into excel
 library(writexl)
 
@@ -119,8 +150,33 @@ write_xlsx(final_young_men_ads, "final_young_men_ads.xlsx")
 # I then put them in two seperate sheets, and redownloaded them as CSV files that I will now re-import into r
 
 republican_ads <- read_csv("republican_advertisers.csv")
-democratic_ads <- read_csv("democratic_advertisers.csv")
+```
 
+    ## Rows: 384 Columns: 23
+    ## ── Column specification ────────────────────────────────────────────────────────
+    ## Delimiter: ","
+    ## chr  (14): page_name, byline, ad_creative_bodies, ad_creative_link_titles, a...
+    ## dbl   (3): ad_archive_id, page_id, pct_young_male
+    ## date  (6): ad_creation_time, ad_delivery_start_time, ad_delivery_stop_time, ...
+    ## 
+    ## ℹ Use `spec()` to retrieve the full column specification for this data.
+    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+
+``` r
+democratic_ads <- read_csv("democratic_advertisers.csv")
+```
+
+    ## Rows: 278 Columns: 23
+    ## ── Column specification ────────────────────────────────────────────────────────
+    ## Delimiter: ","
+    ## chr  (14): page_name, byline, ad_creative_bodies, ad_creative_link_titles, a...
+    ## dbl   (3): ad_archive_id, page_id, pct_young_male
+    ## date  (6): ad_creation_time, ad_delivery_start_time, ad_delivery_stop_time, ...
+    ## 
+    ## ℹ Use `spec()` to retrieve the full column specification for this data.
+    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+
+``` r
 # Now adding party column for each dataset, and rejoining them back together so I can compare them!
 
 republican_ads <- republican_ads |> mutate(party = "Republican")
@@ -129,12 +185,14 @@ democratic_ads <- democratic_ads |> mutate(party = "Democrat")
 ads_by_party <- bind_rows(republican_ads, democratic_ads)
 ```
 
-### I want to delve into impressions and spending data, but meta CSV provides them as ranges like: "lower_bound: 600, upper_bound: 699"
+### I want to delve into impressions and spending data, but meta CSV provides them as ranges like: “lower_bound: 600, upper_bound: 699”
 
-So I decided to convert them all to the lower bound value for consistencies sake. This will ensure they're numeric and measurable as well. Using dplyr and stringr. Going to mutate the data and add columns for lower bound of impressions and money
+So I decided to convert them all to the lower bound value for
+consistencies sake. This will ensure they’re numeric and measurable as
+well. Using dplyr and stringr. Going to mutate the data and add columns
+for lower bound of impressions and money
 
-```{r}
-
+``` r
 # Downloading dplyr and stringr to mutate in order to get just lower bound values
 library(dplyr)
 library(stringr)
@@ -155,7 +213,7 @@ ads_by_party_clean <- ads_by_party |>
 
 ### Now the data is fully cleaned and prepared for analysis! Starting by looking into spending data!
 
-```{r}
+``` r
 # Downloading ggplot for graphing
 library(ggplot2)
 
@@ -167,8 +225,11 @@ ggplot(ads_by_party_clean, aes(x = party, y = spend_lower, color = party, text =
   labs(title = "Ad Spending by Party-alignment", x = "Party-alignment", y = "Ad Spending") +
   theme_minimal() +
   theme(legend.position = "none")
+```
 
+![](Final-Project-Markdown_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
+``` r
 # Simple table displaying total and average money spent on ads targeting men by party
 spending_summary <- ads_by_party_clean %>%
   group_by(party) %>%
@@ -182,9 +243,15 @@ spending_summary <- ads_by_party_clean %>%
 spending_summary
 ```
 
+    ## # A tibble: 2 × 4
+    ##   party      total_spend average_spend ad_count
+    ##   <chr>            <dbl>         <dbl>    <int>
+    ## 1 Democrat        168300          605.      278
+    ## 2 Republican      431900         1125.      384
+
 ### Total impressions by party
 
-```{r}
+``` r
 # Adding new young men impressions column
 ads_by_party_clean <- ads_by_party_clean %>%
   mutate(
@@ -200,7 +267,15 @@ total_young_men_impressions <- ads_by_party_clean %>%
   )
 
 total_young_men_impressions
+```
 
+    ## # A tibble: 2 × 2
+    ##   party      total_young_men_impressions
+    ##   <chr>                            <dbl>
+    ## 1 Democrat                      5217241.
+    ## 2 Republican                   12279474.
+
+``` r
 # Looking into Top advertisers by young men impressions. Who is driving these numbers?
 top_young_men_pages <- ads_by_party_clean %>%
   group_by(party, page_name) %>%
@@ -215,14 +290,42 @@ top_young_men_pages <- ads_by_party_clean %>%
 top_young_men_pages
 ```
 
+    ## # A tibble: 10 × 3
+    ##    party      page_name                    total_young_men_impressions
+    ##    <chr>      <chr>                                              <dbl>
+    ##  1 Democrat   The Daily Scroll                                1326581.
+    ##  2 Democrat   NowThis Impact                                   841383.
+    ##  3 Democrat   Kamala Harris                                    449926.
+    ##  4 Democrat   WinSenate                                        436386.
+    ##  5 Democrat   House Majority PAC                               403390.
+    ##  6 Republican NumbersUSA                                      8597877.
+    ##  7 Republican Citizens For Free Enterprise                     647405.
+    ##  8 Republican Turning Point USA                                577989 
+    ##  9 Republican Right For America PAC                            325284.
+    ## 10 Republican Ben Shapiro                                      238929
+
 ### Now looking at common words using corpus code from our 12/2 class!
 
-```{r}
+``` r
 library(quanteda)
+```
 
+    ## Package version: 4.3.1
+    ## Unicode version: 14.0
+    ## ICU version: 71.1
+
+    ## Parallel computing: disabled
+
+    ## See https://quanteda.io for tutorials and examples.
+
+``` r
 # Creating ad corpus
 ad_corpus <- corpus(ads_by_party_clean, text_field = "ad_creative_bodies")
+```
 
+    ## Warning: NA is replaced by empty string
+
+``` r
 # Defining custom custom stopwords (Many ended up being very common in political ad space, with substantive meaning on their own)
 custom_stopwords <- c("us", "amp", "will", "can", "get", "see", "state", "district", "bring")
 
@@ -257,7 +360,33 @@ top_words_by_party <- dfm_long %>%
   ungroup()
 
 top_words_by_party
+```
 
+    ## # A tibble: 20 × 3
+    ##    party      word         freq
+    ##    <chr>      <chr>       <dbl>
+    ##  1 Democrat   immigration   111
+    ##  2 Democrat   vote           98
+    ##  3 Democrat   families       97
+    ##  4 Democrat   kamala         85
+    ##  5 Democrat   harris         81
+    ##  6 Democrat   working        75
+    ##  7 Democrat   protect        68
+    ##  8 Democrat   congress       56
+    ##  9 Democrat   time           56
+    ## 10 Democrat   together       51
+    ## 11 Republican immigration   349
+    ## 12 Republican border        247
+    ## 13 Republican illegal       222
+    ## 14 Republican harris        157
+    ## 15 Republican policies      130
+    ## 16 Republican vote          107
+    ## 17 Republican southern       87
+    ## 18 Republican crime          77
+    ## 19 Republican grade          77
+    ## 20 Republican reckless       75
+
+``` r
 # Plot the top words, need to download tidytext
 library(tidytext)
 
@@ -286,10 +415,11 @@ top_words_by_party %>%
   theme_minimal()
 ```
 
+![](Final-Project-Markdown_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+
 ### Keyness analysis (as suggested in presentation feedback)
 
-```{r}
-
+``` r
 # Needed to load the quanteda.textstats package to get this to work
 library(quanteda.textstats)
 
@@ -353,10 +483,11 @@ ggplot(
   theme_minimal(base_size = 14)
 ```
 
+![](Final-Project-Markdown_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
+
 ### Sentiment Analysis using AFINN (Scaled as Proportions)
 
-```{r}
-
+``` r
 # First, tokenizing ad text into individual words
 ads_words <- ads_by_party_clean %>%
   select(party, ad_creative_bodies) %>%
@@ -389,7 +520,17 @@ tone_props <- ads_sentiment %>%
   ungroup()
 
 tone_props
+```
 
+    ## # A tibble: 4 × 4
+    ##   party      tone         n  prop
+    ##   <chr>      <chr>    <int> <dbl>
+    ## 1 Democrat   Negative   235 0.327
+    ## 2 Democrat   Positive   484 0.673
+    ## 3 Republican Negative   968 0.493
+    ## 4 Republican Positive   997 0.507
+
+``` r
 # Now plotting proportion of positive vs negative sentiment by party
 # -----------------------------
 ggplot(tone_props, aes(x = party, y = prop, fill = tone)) +
@@ -409,5 +550,6 @@ ggplot(tone_props, aes(x = party, y = prop, fill = tone)) +
     fill = "Tone"
   ) +
   theme_minimal(base_size = 14)
-
 ```
+
+![](Final-Project-Markdown_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
